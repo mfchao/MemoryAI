@@ -1,4 +1,4 @@
-# Memory AI phone scrolytelling app
+# Memory AI phone scrollytelling app
 
 `npm install`
 
