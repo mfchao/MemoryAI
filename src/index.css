@@ -1,17 +1,23 @@
+@import "tailwindcss";
+
 #root {
-  width: 100vw;
-  height: 100vh;
+  @apply w-screen h-screen;
 }
 
-
 canvas {
+  @apply fixed top-0 left-0 outline-none;
   position: fixed !important;
-  top: 0;
-  left: 0;
-  outline: none;
 }
 
 body {
-  margin: 0;
-
+  @apply m-0;
 }
+
+/* Clip phone screen HTML to rounded rect so corners don't stick out */
+.phone-screen-html,
+.phone-screen-html > div,
+.phone-screen-wrapper {
+  @apply rounded-[60px] overflow-hidden bg-transparent;
+  clip-path: inset(0 round 60px) !important;
+}
+
