@@ -1,17 +1,19 @@
 import {
     useGLTF,
-    OrbitControls,
-    Environment,
     Html,
   } from "@react-three/drei";
-import * as THREE from "three";
+import { editable as e } from '@theatre/r3f'
+import { useHtmlPortal } from "../context/HtmlPortalContext";
+
 
 const MODEL_URL = "/samsung-s25/source/SAMSUNG%20S25.gltf";
 const SCREEN_MATERIAL_NAME = "Wallpapers";
 
 
 
-function SceneNode({ object, screenContent }) {
+
+function SceneNode({ object, screenContent, screenPortalRef }) {
+  if (!object) return null;
   if (object.isGroup) {
     return (
       <group
@@ -24,6 +26,7 @@ function SceneNode({ object, screenContent }) {
             key={child.uuid}
             object={child}
             screenContent={screenContent}
+            screenPortalRef={screenPortalRef}
           />
         ))}
       </group>
@@ -32,8 +35,8 @@ function SceneNode({ object, screenContent }) {
 
   if (object.isMesh && object.material?.name === SCREEN_MATERIAL_NAME) {
     return (
-    
         <Html
+          portal={screenPortalRef}
           className="phone-screen-html w-[736px] h-[1594px] rounded-[60px] overflow-hidden border-none pointer-events-auto"
           transform
           occlude="blending"
@@ -48,7 +51,6 @@ function SceneNode({ object, screenContent }) {
             {screenContent}
           </div>
         </Html>
- 
     );
   }
 
@@ -69,10 +71,11 @@ function SceneNode({ object, screenContent }) {
 
 function SamsungPhone({ screenContent }) {
   const { scene } = useGLTF(MODEL_URL);
+  const screenPortalRef = useHtmlPortal();
   return (
-    <group>
-      <SceneNode object={scene} screenContent={screenContent} />
-    </group>
+    <e.group theatreKey="Phone">
+      <SceneNode object={scene} screenContent={screenContent} screenPortalRef={screenPortalRef} />
+    </e.group>
   );
 }
 
