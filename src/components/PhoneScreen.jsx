@@ -10,6 +10,7 @@ export default function PhoneScreen() {
     >
       <h2 className="mb-1.5 text-[30px]">Hello</h2>
       <p className="m-0 text-[40px] opacity-80">Welcome to MemoryAI</p>
+      
     </div>
   );
 }

@@ -8,6 +8,9 @@ const DEFAULT_MAIN = "Introducing Memory AI";
 const DEFAULT_CAPTION =
   "Memory AI is a new way to create and share memories. It uses AI to help you create and share memories with your friends and family.";
 
+const FONT_MAIN = "/fonts/SamsungSSHead-Medium.woff";
+const FONT_CAPTION = "/fonts/SamsungSSBody-Light.woff";
+
 // Defined once so sheet.object() always receives the same config reference
 const CAPTION_OBJECT_CONFIG = {
   mainText: types.string(DEFAULT_MAIN, { label: "Main Text" }),
@@ -70,8 +73,8 @@ export function StoryCaptionsText() {
       opacity={opacity}
     >
       <Text
+        font={FONT_MAIN}
         fontSize={0.4}
-        fontWeight="bold"
         color="#000000"
         anchorX="center"
         anchorY="top"
@@ -82,8 +85,8 @@ export function StoryCaptionsText() {
         {mainText}
       </Text>
       <Text
+        font={FONT_CAPTION}
         fontSize={0.2}
-        fontWeight={300}
         color="#333333"
         anchorX="center"
         anchorY="top"
