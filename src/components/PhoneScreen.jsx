@@ -2,12 +2,13 @@ import { useRef, useMemo, useEffect, useState } from "react";
 import { types, val, onChange } from "@theatre/core";
 
 const PHONE_VIDEO_OBJECT_CONFIG = {
-  playing: types.boolean(false, { label: "Play" }),
   opacity: types.number(1, { range: [0, 1], label: "Opacity" }),
+  frame: types.number(0, { range: [0, 1], label: "Frame" }),
 };
 
-export default function PhoneScreen({ sheet }) {
+export default function PhoneScreen({ sheet, scrollOffset = 0 }) {
   const videoRef = useRef(null);
+  const [videoDuration, setVideoDuration] = useState(0);
 
   const videoObj = useMemo(() => {
     if (!sheet) return null;
@@ -16,7 +17,6 @@ export default function PhoneScreen({ sheet }) {
     });
   }, [sheet]);
 
-  const prevPlayingRef = useRef(false);
   const [videoOpacity, setVideoOpacity] = useState(1);
 
   useEffect(() => {
@@ -30,34 +30,25 @@ export default function PhoneScreen({ sheet }) {
 
   useEffect(() => {
     if (!videoObj || !sheet) return;
-    const onPositionOrPlayingChange = () => {
-      if (!videoRef.current) return;
-      const currentPlaying = val(videoObj.props.playing);
-      const justEnteredKeyframe = currentPlaying && !prevPlayingRef.current;
-
-      if (justEnteredKeyframe) {
-        videoRef.current.currentTime = 0;
-        videoRef.current.play?.();
-      } else if (!currentPlaying) {
-        videoRef.current.pause?.();
-      }
-
-      prevPlayingRef.current = currentPlaying;
+    const syncVideoToFrame = () => {
+      const video = videoRef.current;
+      if (!video || !Number.isFinite(videoDuration) || videoDuration <= 0) return;
+      const frame = val(videoObj.props.frame);
+      const videoTime = Math.min(
+        videoDuration,
+        Math.max(0, frame * videoDuration)
+      );
+      video.currentTime = videoTime;
     };
+    syncVideoToFrame();
+    const unsub = onChange(sheet.sequence.pointer.position, syncVideoToFrame);
+    return () => unsub();
+  }, [videoObj, sheet, videoDuration]);
 
-    onPositionOrPlayingChange();
-    const unsubPlaying = onChange(videoObj.props.playing, onPositionOrPlayingChange);
-    const unsubPosition = onChange(sheet.sequence.pointer.position, onPositionOrPlayingChange);
-    return () => {
-      unsubPlaying();
-      unsubPosition();
-    };
-  }, [videoObj, sheet]);
-
-  const handleVideoEnded = () => {
-    if (!videoObj) return;
-    videoRef.current?.pause?.();
-    prevPlayingRef.current = false;
+  const handleLoadedMetadata = () => {
+    if (videoRef.current?.duration) {
+      setVideoDuration(videoRef.current.duration);
+    }
   };
 
   return (
@@ -77,7 +68,8 @@ export default function PhoneScreen({ sheet }) {
         style={{ opacity: videoOpacity }}
         muted
         playsInline
-        onEnded={handleVideoEnded}
+        onLoadedMetadata={handleLoadedMetadata}
+        preload="metadata"
       />
     </div>
   );

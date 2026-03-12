@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import {
@@ -48,19 +48,20 @@ function App() {
 function Scene() {
   const sheet = useCurrentSheet();
   const scroll = useScroll();
+  const [scrollOffset, setScrollOffset] = useState(0);
 
-  useFrame(()=> {
+  useFrame(() => {
     const sequenceLength = val(sheet.sequence.pointer.length);
     sheet.sequence.position = scroll.offset * sequenceLength;
+    setScrollOffset(scroll.offset);
   });
 
   return (
     <>
-      <SamsungPhone screenContent={<PhoneScreen sheet={sheet} />} />
+      <SamsungPhone screenContent={<PhoneScreen sheet={sheet} scrollOffset={scrollOffset} />} />
       <StoryCaptionsText/>
     </>
-  )
-
+  );
 }
 
 export default App;
