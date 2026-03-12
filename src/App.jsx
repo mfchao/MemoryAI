@@ -15,6 +15,7 @@ import { HtmlPortalProvider } from "./context/HtmlPortalContext";
 import studio from '@theatre/studio'
 import { editable as e, SheetProvider, useCurrentSheet } from '@theatre/r3f'
 import { getProject, val } from "@theatre/core";
+import { StoryCaptionsText } from "./components/StoryCaptionsText";
 
 
 
@@ -56,7 +57,7 @@ function Scene() {
   return (
     <>
       <SamsungPhone screenContent={<PhoneScreen />} />
-    
+      <StoryCaptionsText/>
     </>
   )
 
