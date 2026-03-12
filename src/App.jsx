@@ -56,7 +56,7 @@ function Scene() {
 
   return (
     <>
-      <SamsungPhone screenContent={<PhoneScreen />} />
+      <SamsungPhone screenContent={<PhoneScreen sheet={sheet} />} />
       <StoryCaptionsText/>
     </>
   )
