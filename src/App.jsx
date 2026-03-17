@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import {
@@ -21,6 +21,7 @@ import { editable as e, SheetProvider, useCurrentSheet } from '@theatre/r3f'
 import { getProject, val } from "@theatre/core";
 import { StoryCaptionsText } from "./components/StoryCaptionsText";
 import { ScrollToBegin } from "./components/ScrollToBegin";
+import { ScrollContext, ScrollOffsetBridge } from "./context/ScrollContext";
 
 
 
@@ -29,9 +30,14 @@ studio.initialize()
 
 function App() {
   const sheet = getProject("Fly Through").sheet("Scene");
+  const [scrollState, setScrollState] = useState({
+    scrollOffset: 0,
+    showScrollHint: true,
+  });
 
   return (
-    <>
+    <ScrollContext.Provider value={{ ...scrollState, setScrollState }}>
+      <ScrollToBegin />
       <Canvas camera={{ position: [0, 0, 10], fov: 45 }} gl={{ preserveDrawingBuffer: true }}>
         <ambientLight intensity={0.6} />
         <directionalLight position={[2, 2, 2]} intensity={1.2} />
@@ -53,7 +59,7 @@ function App() {
         </Hud>
         <OrbitControls enablePan enableZoom={false} target={[0, 0, 0]} />
       </Canvas>
-    </>
+    </ScrollContext.Provider>
   );
 }
 
@@ -68,7 +74,7 @@ function Scene() {
 
   return (
     <>
-      <ScrollToBegin />
+      <ScrollOffsetBridge />
       <group position={[0, 0, 0]}>
         <SamsungPhone theatreKey="Phone" screenContent={<PhoneScreen sheet={sheet} />} />
       </group>
