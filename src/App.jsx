@@ -1,4 +1,4 @@
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import {
@@ -22,14 +22,15 @@ import { getProject, val } from "@theatre/core";
 import { StoryCaptionsText } from "./components/StoryCaptionsText";
 import { ScrollToBegin } from "./components/ScrollToBegin";
 import { ScrollContext, ScrollOffsetBridge } from "./context/ScrollContext";
+// Exported Theatre.js state (sheet name in JSON is "Scene")
+import flyThroughState from "../public/fly-through.json";
 
-
-
-studio.initialize()
-
+// if (import.meta.env.DEV) {
+//   studio.initialize();
+// }
 
 function App() {
-  const sheet = getProject("Fly Through").sheet("Scene");
+  const sheet = getProject("Fly Through", { state: flyThroughState }).sheet("Scene");
   const [scrollState, setScrollState] = useState({
     scrollOffset: 0,
     showScrollHint: true,
