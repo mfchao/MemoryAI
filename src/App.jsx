@@ -1,4 +1,4 @@
-import { Suspense, useState } from "react";
+import { Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import {
@@ -6,16 +6,21 @@ import {
   OrbitControls,
   Environment,
   Html,
-  ScrollControls, useScroll
+  ScrollControls,
+  useScroll,
+  Hud,
 } from "@react-three/drei";
 import SamsungPhone from "./components/SamsungPhone";
 import PhoneScreen from "./components/PhoneScreen";
+import PhoneScreenShare2 from "./components/PhoneScreenShare2";
+import CircleSvg from "./components/CircleSvg";
 import { HtmlPortalProvider } from "./context/HtmlPortalContext";
 
 import studio from '@theatre/studio'
 import { editable as e, SheetProvider, useCurrentSheet } from '@theatre/r3f'
 import { getProject, val } from "@theatre/core";
 import { StoryCaptionsText } from "./components/StoryCaptionsText";
+import { ScrollToBegin } from "./components/ScrollToBegin";
 
 
 
@@ -32,13 +37,20 @@ function App() {
         <directionalLight position={[2, 2, 2]} intensity={1.2} />
         <directionalLight position={[-1, 1, -1]} intensity={0.4} />
         <Environment preset="studio" />
-          <ScrollControls pages={5}>
-            <SheetProvider sheet={sheet}>
-              <HtmlPortalProvider>
-                <Scene />
-              </HtmlPortalProvider>
-            </SheetProvider>
-          </ScrollControls>
+        <ScrollControls pages={5}>
+          <SheetProvider sheet={sheet}>
+            <HtmlPortalProvider>
+              <Scene />
+            </HtmlPortalProvider>
+          </SheetProvider>
+        </ScrollControls>
+
+        {/* Fixed-on-screen HTML circle, not affected by scroll */}
+        <Hud>
+          <group scale={0.3}>
+            <CircleSvg sheet={sheet} />
+          </group>
+        </Hud>
         <OrbitControls enablePan enableZoom={false} target={[0, 0, 0]} />
       </Canvas>
     </>
@@ -48,20 +60,25 @@ function App() {
 function Scene() {
   const sheet = useCurrentSheet();
   const scroll = useScroll();
-  const [scrollOffset, setScrollOffset] = useState(0);
 
-  useFrame(() => {
+  useFrame(()=> {
     const sequenceLength = val(sheet.sequence.pointer.length);
     sheet.sequence.position = scroll.offset * sequenceLength;
-    setScrollOffset(scroll.offset);
   });
 
   return (
     <>
-      <SamsungPhone screenContent={<PhoneScreen sheet={sheet} scrollOffset={scrollOffset} />} />
+      <ScrollToBegin />
+      <group position={[0, 0, 0]}>
+        <SamsungPhone theatreKey="Phone" screenContent={<PhoneScreen sheet={sheet} />} />
+      </group>
+      <group position={[1.2, 0, 0]}>
+        <SamsungPhone theatreKey="Phone2" screenContent={<PhoneScreenShare2 sheet={sheet} />} />
+      </group>
       <StoryCaptionsText/>
     </>
-  );
+  )
+
 }
 
 export default App;

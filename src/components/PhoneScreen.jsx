@@ -1,76 +1,133 @@
 import { useRef, useMemo, useEffect, useState } from "react";
 import { types, val, onChange } from "@theatre/core";
 
-const PHONE_VIDEO_OBJECT_CONFIG = {
+const VIDEO_OBJECT_CONFIG = {
+  playing: types.boolean(false, { label: "Play" }),
   opacity: types.number(1, { range: [0, 1], label: "Opacity" }),
-  frame: types.number(0, { range: [0, 1], label: "Frame" }),
 };
 
-export default function PhoneScreen({ sheet, scrollOffset = 0 }) {
+const VIDEO_SOURCES = [
+  { objectKey: "phoneVideoQuickCapture", src: "/videos/capture.mp4" },
+  { objectKey: "phoneVideoCreatememory", src: "/videos/createMemory.mp4" },
+  { objectKey: "phoneVideoReminder", src: "/videos/reminder.mp4" },
+  { objectKey: "phoneVideoShare1", src: "/videos/share1.mp4" },
+];
+
+export function PhoneVideo({ sheet, objectKey, src, muted: mutedProp = true }) {
   const videoRef = useRef(null);
-  const [videoDuration, setVideoDuration] = useState(0);
+  const prevPlayingRef = useRef(false);
+  const hasEndedRef = useRef(false);
+  const [opacity, setOpacity] = useState(1);
+  const [playBlockedSoMuted, setPlayBlockedSoMuted] = useState(false);
 
   const videoObj = useMemo(() => {
     if (!sheet) return null;
-    return sheet.object("phoneVideo", PHONE_VIDEO_OBJECT_CONFIG, {
+    return sheet.object(objectKey, VIDEO_OBJECT_CONFIG, {
       reconfigure: true,
     });
-  }, [sheet]);
-
-  const [videoOpacity, setVideoOpacity] = useState(1);
+  }, [sheet, objectKey]);
 
   useEffect(() => {
     if (!videoObj) return;
-    setVideoOpacity(val(videoObj.props.opacity));
-    const unsub = onChange(videoObj.props.opacity, () =>
-      setVideoOpacity(val(videoObj.props.opacity))
+    setOpacity(val(videoObj.props.opacity));
+    return onChange(videoObj.props.opacity, () =>
+      setOpacity(val(videoObj.props.opacity))
     );
-    return () => unsub();
   }, [videoObj]);
 
   useEffect(() => {
-    if (!videoObj || !sheet) return;
-    const syncVideoToFrame = () => {
-      const video = videoRef.current;
-      if (!video || !Number.isFinite(videoDuration) || videoDuration <= 0) return;
-      const frame = val(videoObj.props.frame);
-      const videoTime = Math.min(
-        videoDuration,
-        Math.max(0, frame * videoDuration)
-      );
-      video.currentTime = videoTime;
-    };
-    syncVideoToFrame();
-    const unsub = onChange(sheet.sequence.pointer.position, syncVideoToFrame);
-    return () => unsub();
-  }, [videoObj, sheet, videoDuration]);
+    if (!videoObj) return;
+    const onPlayingChange = () => {
+      const v = videoRef.current;
+      if (!v) return;
+      const playing = val(videoObj.props.playing);
+      const justBecameTrue = playing && !prevPlayingRef.current;
 
-  const handleLoadedMetadata = () => {
-    if (videoRef.current?.duration) {
-      setVideoDuration(videoRef.current.duration);
-    }
+      if (justBecameTrue) {
+        hasEndedRef.current = false;
+        v.currentTime = 0;
+        const p = v.play?.();
+        if (p && typeof p.catch === "function") {
+          p.catch((err) => {
+            if (err?.name === "NotAllowedError") {
+              if (mutedProp) {
+                v.muted = true;
+                v.play?.().catch(() => {});
+              } else {
+                v.muted = true;
+                setPlayBlockedSoMuted(true);
+                v.play?.().catch(() => {});
+              }
+            }
+          });
+        }
+      } else if (!playing) {
+        v.pause?.();
+        if (!hasEndedRef.current) {
+          v.currentTime = 0;
+        }
+      }
+      prevPlayingRef.current = playing;
+    };
+
+    onPlayingChange();
+    return onChange(videoObj.props.playing, onPlayingChange);
+  }, [videoObj]);
+
+  const handleEnded = () => {
+    const v = videoRef.current;
+    if (!v || !videoObj) return;
+    hasEndedRef.current = true;
+    v.pause?.();
+    v.currentTime = v.duration || 0;
+    prevPlayingRef.current = false;
+    try {
+      videoObj.initialValue = { playing: false };
+    } catch (_) {}
   };
 
+  useEffect(() => {
+    if (!videoRef.current || !videoObj) return;
+    const v = videoRef.current;
+    v.currentTime = 0;
+    v.pause?.();
+  }, [videoObj]);
+
+  const muted = mutedProp || playBlockedSoMuted;
+
+  return (
+    <video
+      ref={videoRef}
+      src={src}
+      className="absolute inset-0 w-full h-full object-cover"
+      style={{ opacity }}
+      playsInline
+      muted={muted}
+      onEnded={handleEnded}
+    />
+  );
+}
+
+export default function PhoneScreen({ sheet }) {
   return (
     <div
       className="relative w-[736px] h-[1594px] flex items-center justify-center bg-white box-border overflow-hidden rounded-[60px] [clip-path:inset(0_round_60px)]"
       onPointerDown={(e) => e.stopPropagation()}
     >
       <img
-        src="/Phone.png"
+        src="/screensaver.png"
         alt="Phone screen"
         className="absolute inset-0 w-full h-full object-cover"
       />
-      <video
-        ref={videoRef}
-        src="/videos/capture1.mp4"
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{ opacity: videoOpacity }}
-        muted
-        playsInline
-        onLoadedMetadata={handleLoadedMetadata}
-        preload="metadata"
-      />
+      {VIDEO_SOURCES.map(({ objectKey, src }, index) => (
+        <PhoneVideo
+          key={objectKey}
+          sheet={sheet}
+          objectKey={objectKey}
+          src={src}
+          muted={index !== 0}
+        />
+      ))}
     </div>
   );
 }

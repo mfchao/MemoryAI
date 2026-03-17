@@ -69,11 +69,11 @@ function SceneNode({ object, screenContent, screenPortalRef }) {
   return null;
 }
 
-function SamsungPhone({ screenContent }) {
+function SamsungPhone({ screenContent, theatreKey = "Phone" }) {
   const { scene } = useGLTF(MODEL_URL);
   const screenPortalRef = useHtmlPortal();
   return (
-    <e.group theatreKey="Phone">
+    <e.group theatreKey={theatreKey}>
       <SceneNode object={scene} screenContent={screenContent} screenPortalRef={screenPortalRef} />
     </e.group>
   );
