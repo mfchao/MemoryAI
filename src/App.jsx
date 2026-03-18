@@ -25,11 +25,12 @@ import { ScrollContext, ScrollOffsetBridge } from "./context/ScrollContext";
 // Exported Theatre.js state (sheet name in JSON is "Scene")
 import flyThroughState from "../public/fly-through.json";
 
-// if (import.meta.env.DEV) {
-//   studio.initialize();
-// }
+
+// studio.initialize();
+
 
 function App() {
+  // const sheet = getProject("Fly Through").sheet("Scene");
   const sheet = getProject("Fly Through", { state: flyThroughState }).sheet("Scene");
   const [scrollState, setScrollState] = useState({
     scrollOffset: 0,

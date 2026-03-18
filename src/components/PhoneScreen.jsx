@@ -8,9 +8,10 @@ const VIDEO_OBJECT_CONFIG = {
 
 const VIDEO_SOURCES = [
   { objectKey: "phoneVideoQuickCapture", src: "/videos/capture.mp4" },
-  { objectKey: "phoneVideoCreatememory", src: "/videos/createMemory.mp4" },
+  { objectKey: "phoneVideoCreatememory", src: "/videos/capture1.mp4" },
   { objectKey: "phoneVideoReminder", src: "/videos/reminder.mp4" },
   { objectKey: "phoneVideoShare1", src: "/videos/share1.mp4" },
+  { objectKey: "phoneVideoShare1a", src: "/videos/share1b.mp4" },
 ];
 
 export function PhoneVideo({ sheet, objectKey, src, muted: mutedProp = true }) {
